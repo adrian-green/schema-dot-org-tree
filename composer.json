@@ -1,8 +1,8 @@
 {
-  "name": "meltingServer/schema-dot-org-tree",
+  "name": "melting-server/schema-dot-org-tree",
   "description": "Reads a version of schema and builds out a structured tree",
   "license": "MIT",
-  "homepage": "https://github.com/meltingServer/schemaDotOrgTree",
+  "homepage": "https://github.com/melting-server/schema-dot-org-tree",
   "authors": [
     {
       "name": "Jason Steelman"
