@@ -1,0 +1,25 @@
+{
+  "name": "meltingServer/schema-dot-org-tree",
+  "description": "Reads a version of schema and builds out a structured tree",
+  "license": "MIT",
+  "homepage": "https://github.com/meltingServer/schemaDotOrgTree",
+  "authors": [
+    {
+      "name": "Jason Steelman"
+    }
+  ],
+  "minimum-stability": "dev",
+  "autoload": {
+    "psr-4": {
+      "SchemaDotOrgTree\\": "src/"
+    }
+  },
+  "require": {
+    "php": "^5.6 || ^7.0",
+    "ext-json": "*",
+    "guzzlehttp/guzzle": "^6.5@dev"
+  },
+  "extra": {
+
+  }
+}
