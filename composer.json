@@ -1,6 +1,6 @@
 {
   "name": "melting-server/schema-dot-org-tree",
-  "description": "Reads a version of schema.org and builds out a structured tree",
+  "description": "Reads a version of schema.org and builds out a structured tree. Access any entry's direct or inherited properties or traverse the tree using $entity->parent() or $entity->children. Supports  multiple schema versions.",
   "license": "MIT",
   "homepage": "https://github.com/melting-server/schema-dot-org-tree",
   "authors": [
