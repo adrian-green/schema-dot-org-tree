@@ -14,7 +14,7 @@ with some object normalization - nothing more.
 Install
 =======
 ```php
-composer require jksteelman\schema-dot-org-tree
+composer require melting-server\schema-dot-org-tree
 ```
 
 Usage
