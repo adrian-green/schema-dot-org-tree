@@ -161,26 +161,11 @@ Currently supported versions:
  - '5.0-all' => 'https://github.com/schemaorg/schemaorg/raw/master/data/releases/5.0/all-layers.jsonld',
  - '5.0-core' => 'https://github.com/schemaorg/schemaorg/raw/master/data/releases/5.0/schema.jsonld',
 
-You can compare versions to see what is included/excluded between versions. 
-Most implementations should just stick with the default "latest".
-```php
-new Tree('latest');
-new Tree('4.0-core');
-new Tree('3.7-core');
-var_dump(Tree::$trees);
-
-/** 
-Outputs: [
-    'latest' => {Tree}
-    '4.0-core' => {Tree}
-    '3.7-core' => {Tree}
-]
-*/
 ```
 
 With multiple trees in memory, you can retrieve specfic entities from specific versions.
 ```php
-$entity = Tree::getEntityReference('latest', 'http://schema.org/Thing');
+$tree->getEntityReference('latest', 'http://schema.org/Thing');
 ```
 
 Each class/property/dataType is loaded with knowledge about which version from which it was loaded.

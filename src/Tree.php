@@ -4,15 +4,17 @@
 namespace SchemaDotOrgTree;
 
 
+use Exception;
+
 class Tree {
 	/** @var Reader */
 	public $reader;
 
 	/** @var FlattenedTree[] */
-	static public $flattenedTrees;
+	public $flattenedTrees;
 
 	/** @var Tree[] */
-	static public $trees;
+	public $trees;
 
 	/**
 	 * @var array Traversal Instructions
@@ -37,12 +39,12 @@ class Tree {
 	 *  X => [ParentA, B]
 	 *
 	 */
-	static public $leafIndexes = [];
+	public $leafIndexes = [];
 
 	/** @var Entity[] */
-	static public $orphanedEntities = [];
+	public $orphanedEntities = [];
 
-	static public $orphanedProperties = [];
+	public $orphanedProperties = [];
 
 	public $version;
 
@@ -51,12 +53,12 @@ class Tree {
 	 *
 	 * @param null|string $version use Null or "latest" for latest
 	 *
-	 * @throws \Exception
+	 * @throws Exception
 	 */
 	public function __construct($version = 'latest') {
 		$this->version = $version;
 		$this->reader = new Reader($this->version);
-		self::$flattenedTrees[$version] = new FlattenedTree($this->reader->getJson(), $this->version);
+		$this->flattenedTrees[$version] = new FlattenedTree($this->reader->getJson(), $this->version);
 		$this->createStructureFromFlattenedTree($version);
 		$this->assignProperties($version);
 	}
@@ -65,7 +67,7 @@ class Tree {
 	 * @return Tree
 	 */
 	public function getTree() {
-		return self::$trees[$this->version];
+		return $this->trees[$this->version];
 	}
 
 	/**
@@ -87,8 +89,8 @@ class Tree {
 	}
 
 	private function assignProperties($version) {
-		self::$orphanedProperties = [];
-		foreach(self::$flattenedTrees[$version]->properties as $property) {
+		$this->orphanedProperties = [];
+		foreach($this->flattenedTrees[$version]->properties as $property) {
 			foreach($property->domainIncludes as $entityId) {
 				if(self::isLocatableInVersion($version, $entityId)) {
 					$entity = &self::getEntityReference($version, $entityId);
@@ -96,7 +98,7 @@ class Tree {
 						$entity->addProperty($property);
 					}
 				} else {
-					self::$orphanedProperties[] = $property;
+					$this->orphanedProperties[] = $property;
 				}
 			}
 		}
@@ -104,13 +106,13 @@ class Tree {
 
 	private function createStructureFromFlattenedTree($version) {
 		$childEntities = [];
-		self::$trees[$this->version] = [];
-		self::$leafIndexes[$this->version] = [];
-		foreach( self::$flattenedTrees[$version]->entities as $entity) {
+		$this->trees[$this->version] = [];
+		$this->leafIndexes[$this->version] = [];
+		foreach( $this->flattenedTrees[$version]->entities as $entity) {
 			if($entity->subClassOf) {
 				$childEntities[] = $entity;
 			} else {
-				self::addLevelZeroEntity($version, $entity);
+				$this->addLevelZeroEntity($version, $entity);
 			}
 		}
 
@@ -124,17 +126,17 @@ class Tree {
 			}
 			$childEntities = $orphanedChildren;
 		}
-		self::$orphanedEntities = $childEntities;
+		$this->orphanedEntities = $childEntities;
 	}
 
-	static private function addLevelZeroEntity($version, Entity &$childEntity) {
-		self::$trees[$version][$childEntity->id] = $childEntity;
-		self::$leafIndexes[$version][$childEntity->id] = [];
+	private function addLevelZeroEntity($version, Entity &$childEntity) {
+		$this->trees[$version][$childEntity->id] = $childEntity;
+		$this->leafIndexes[$version][$childEntity->id] = [];
 		return;
 	}
 
-	static public function isLocatableInVersion($version, $entityId) {
-		return isset(self::$leafIndexes[$version][$entityId]);
+	public function isLocatableInVersion($version, $entityId) {
+		return isset($this->leafIndexes[$version][$entityId]);
 	}
 
 	/**
@@ -143,13 +145,13 @@ class Tree {
 	 *
 	 * @return Entity
 	 */
-	static public function &getEntityReference($version, $entityId) {
-		$traversal = self::$leafIndexes[$version][$entityId];
+	public function &getEntityReference($version, $entityId) {
+		$traversal = $this->leafIndexes[$version][$entityId];
 		if(count($traversal) === 0) {
-			return self::$trees[$version][$entityId];
+			return $this->trees[$version][$entityId];
 		}
 		$directParentId = array_pop($traversal);
-		$directParent = self::getEntityReference($version, $directParentId);
+		$directParent = $this->getEntityReference($version, $directParentId);
 		return $directParent->children[$entityId];
 	}
 
@@ -159,12 +161,12 @@ class Tree {
 	 *
 	 * @return bool True if successful
 	 */
-	static private function addChildEntity($version, Entity &$childEntity) {
+	private function addChildEntity($version, Entity &$childEntity) {
 		$parentClass = $childEntity->parentClassName();
 		if(false === $parentClass) {
 			return false;
 		}
-		if(!self::isLocatableInVersion($version, $parentClass)) {
+		if(!$this->isLocatableInVersion($version, $parentClass)) {
 			return false;
 		}
 
@@ -185,7 +187,7 @@ class Tree {
 			$backwardsPath[] = $currentEntity->subClassOf;
 			$currentEntity = self::getEntityReference($version, $currentEntity->parentClassName());
 		}
-		self::$leafIndexes[$version][$childEntity->id] = array_reverse($backwardsPath);
+		$this->leafIndexes[$version][$childEntity->id] = array_reverse($backwardsPath);
 		return true;
 	}
 }
