@@ -20,7 +20,7 @@ class FlattenedTree {
 		$this->dataTypes = [];
 		foreach($json->{"@graph"} as $item) {
 			/** @var $obj Mappable */
-			if($item->{'@type'} === "rdfs:Class") {
+			if(Entity::jsonSchemaIsEntity($item)) {
 				$obj = new Entity();
 			} else if($item->{'@type'} === "rdf:Property") {
 				$obj = new Property();
@@ -42,7 +42,7 @@ class FlattenedTree {
 				}
 			}
 
-			if($item->{'@type'} === "rdfs:Class") {
+			if(is_a($obj, Entity::class)) {
 				if(is_array($obj->subClassOf)
 					AND is_a($obj->subClassOf[0], stdClass::class)
 					AND isset($obj->subClassOf[0]->{'@id'})
@@ -50,7 +50,7 @@ class FlattenedTree {
 					$obj->subClassOf = $obj->subClassOf[0]->{'@id'};
 				}
 				$this->entities[ $item->{'@id'} ] = $obj;
-			} else if($item->{'@type'} === "rdf:Property") {
+			} else if(is_a($obj, Property::class)) {
 				//clean up for properties' properties
 				if(is_string($obj->domainIncludes)) {
 					$obj->domainIncludes = [$obj->domainIncludes];
@@ -76,5 +76,21 @@ class FlattenedTree {
 				$this->dataTypes[ $item->{'@id'}] = $obj;
 			}
 		}
+
+		//Now that each entry is in the flattenedTree, we can fetch parent references
+		foreach($this->entities as $key => $entity) {
+			if($entity->parentClassName()) {
+				if(!isset($this->entities[$entity->parentClassName()])) {
+					// Orphaned Reference. Will be handled by the tree maker
+					continue;
+				}
+				$parent = $this->entity($entity->parentClassName());
+				$this->entities[$key]->parent = $parent;
+			}
+		}
+	}
+
+	public function entity($schemaId) {
+		return $this->entities[$schemaId];
 	}
 }

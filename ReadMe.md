@@ -172,3 +172,20 @@ Each class/property/dataType is loaded with knowledge about which version from w
 ```php
 $entity->version;
 ```
+
+Limitations
+===============
+Schema is designed to be extendable and is intentionally not a "universal schema" in that it was not
+created to cover all possible types of nouns and adjectives in existence. Rather, it tries to be vague enough 
+that separate entities are only created when it would be useful to help a system's deeper understanding 
+of a subject or its relationship to other subjects. This flexibility has allowed schema to be a strong
+definition but also allows it be weird (i.e. Volcanoes have fax numbers). When implementing schema, 
+you'll need to decide how strict you will be in its implementation. I have made a few decisions to aid
+in the speed of processing versus completeness. 
+
+The most important limitation of this library is single-inheritance. A sports arena, for example, is both 
+a civic structure and a sporting location. These instances are uncommon in schema-core (more consequential 
+when using the entire schema scope) but do occur. This library picks the first parent listed and ignores
+the others. The purpose of this library is to represent Schema in a php array as a tree which does not
+support multiple-inheritance. If this preference seriously messes up the meaning of an entity, shoot me 
+message. From the instances I've seen in 5.0-core, there is nothing substantially lost. 

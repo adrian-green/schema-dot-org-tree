@@ -32,6 +32,9 @@ class Entity implements Mappable {
 	/** @var Property[] */
 	public $properties = [];
 
+	/** @var Entity|null */
+	public $parent;
+
 	/**
 	 * Stored so I don't have to recalculate it on subsequent requests.
 	 * @see getProperties()
@@ -73,9 +76,7 @@ class Entity implements Mappable {
 	 * @return Entity|null
 	 */
 	public function getParent() {
-		return $this->parentClassName()
-			? Tree::getEntityReference($this->version, $this->parentClassName())
-			: null;
+		return $this->parent;
 
 	}
 
@@ -127,5 +128,26 @@ class Entity implements Mappable {
 		}
 		$this->inheritedProperties = array_merge($properties, $parent->getProperties());
 		return $this->inheritedProperties;
+	}
+
+	static public function jsonSchemaIsEntity(stdClass $jsonSchemaItem) {
+		if(isset($jsonSchemaItem->{'rdfs:comment'})
+			AND strtolower(substr($jsonSchemaItem->{'rdfs:comment'}, 0, 9)) === "data type"
+		) {
+			var_dump($jsonSchemaItem);
+			echo "^^ thinks he's an entity";
+			return false;
+		}
+		if(is_array($jsonSchemaItem->{'@type'})) {
+			if(in_array("http://schema.org/DataType", $jsonSchemaItem->{'@type'})) {
+				return false;
+			}
+		}
+		if($jsonSchemaItem->{'@type'} === "rdfs:Class") {
+			return true;
+		}
+
+
+		return false;
 	}
 }

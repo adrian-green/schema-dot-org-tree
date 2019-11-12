@@ -76,7 +76,7 @@ class Tree {
 	 * @return Entity|null
 	 */
 	public function getEntity($entityId) {
-		return self::getEntityReference($this->version, $entityId);
+		return $this->getEntityReference($this->version, $entityId);
 	}
 
 	/**
@@ -85,15 +85,15 @@ class Tree {
 	 * @return bool
 	 */
 	public function isLocatable($entityId) {
-		return self::isLocatableInVersion($this->version, $entityId);
+		return $this->isLocatableInVersion($this->version, $entityId);
 	}
 
 	private function assignProperties($version) {
 		$this->orphanedProperties = [];
 		foreach($this->flattenedTrees[$version]->properties as $property) {
 			foreach($property->domainIncludes as $entityId) {
-				if(self::isLocatableInVersion($version, $entityId)) {
-					$entity = &self::getEntityReference($version, $entityId);
+				if($this->isLocatableInVersion($version, $entityId)) {
+					$entity = &$this->getEntityReference($version, $entityId);
 					if($entity) {
 						$entity->addProperty($property);
 					}
@@ -108,7 +108,12 @@ class Tree {
 		$childEntities = [];
 		$this->trees[$this->version] = [];
 		$this->leafIndexes[$this->version] = [];
-		foreach( $this->flattenedTrees[$version]->entities as $entity) {
+		foreach( $this->flattenedTrees[$version]->entities as $key => $entity) {
+			if(!is_a($entity, Entity::class)) {
+				var_dump($key);
+				var_dump($entity);
+				die();
+			}
 			if($entity->subClassOf) {
 				$childEntities[] = $entity;
 			} else {
@@ -120,7 +125,7 @@ class Tree {
 		while(count($childEntities) and $i++ < 99) {
 			$orphanedChildren = [];
 			foreach($childEntities as $entity) {
-				if(!self::addChildEntity($version, $entity)) {
+				if(!$this->addChildEntity($version, $entity)) {
 					$orphanedChildren[] = $entity;
 				}
 			}
@@ -170,7 +175,7 @@ class Tree {
 			return false;
 		}
 
-		$parentEntity = &self::getEntityReference($version, $parentClass);
+		$parentEntity = &$this->getEntityReference($version, $parentClass);
 		$parentEntity->children[$childEntity->id] = $childEntity;
 
 		// Add to Leaf Index
@@ -185,7 +190,7 @@ class Tree {
 				break;
 			}
 			$backwardsPath[] = $currentEntity->subClassOf;
-			$currentEntity = self::getEntityReference($version, $currentEntity->parentClassName());
+			$currentEntity = $this->getEntityReference($version, $currentEntity->parentClassName());
 		}
 		$this->leafIndexes[$version][$childEntity->id] = array_reverse($backwardsPath);
 		return true;
